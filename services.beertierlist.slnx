@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="services.beertierlist.api/services.beertierlist.api.csproj" />
+  <Project Path="services.beertierlist.application/services.beertierlist.application.csproj" />
+  <Project Path="services.beertierlist.domain/services.beertierlist.domain.csproj" />
+  <Project Path="services.beertierlist.infrastructure/services.beertierlist.infrastructure.csproj" />
+</Solution>
