@@ -7,11 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Commands\AddWheelOptions\" />
-    <Folder Include="Commands\RemoveWheelOption\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\services.beertierlist.domain\services.beertierlist.domain.csproj" />
   </ItemGroup>
 

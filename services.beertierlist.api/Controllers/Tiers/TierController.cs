@@ -11,8 +11,7 @@ namespace services.beertierlist.api.Controllers.Tiers;
 [Route("[controller]")]
 public class TierController : ControllerBase
 {
-    [Route("add")]
-    [HttpPost]
+    [HttpPost("add")]
     public async Task<IActionResult> AddTier([FromBody] AddTierRequest request, [FromServices] IAddTierCommandHandler commandHandler, CancellationToken cancellationToken)
     {
         var command = new AddTierCommand("userId", request.Name);
@@ -22,8 +21,7 @@ public class TierController : ControllerBase
         return Ok();
     }
 
-    [Route("remove/{guid:id}")]
-    [HttpDelete]
+    [HttpDelete("remove/{guid:id}")]
     public async Task<IActionResult> RemoveTier([FromRoute] Guid Id, [FromServices] IRemoveTierCommandHandler commandHandler, CancellationToken cancellationToken)
     {
         var command = new RemoveTierCommand(Id, "userId");

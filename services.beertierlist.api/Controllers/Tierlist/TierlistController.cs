@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace services.beertierlist.api.Controllers;
+namespace services.beertierlist.api.Controllers.Tierlist;
 
 [ApiController]
 [Route("[controller]")]
