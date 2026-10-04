@@ -29,7 +29,7 @@ public class WheelController : ControllerBase
         return Ok();
     }
 
-    [HttpDelete("remove/{guid:id}")]
+    [HttpDelete("remove/{id:guid}")]
     public async Task<IActionResult> RemoveWheelOption([FromRoute] Guid Id, [FromServices] IRemoveWheelOptionCommandHandler commandHandler)
     {
         var command = new RemoveWheelOptionCommand(Id, "userId");

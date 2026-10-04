@@ -1,5 +1,8 @@
-﻿namespace services.beertierlist.application.Queries.TierlistEntries;
+﻿using services.beertierlist.domain.Tierlist;
 
-internal interface ITierlistEntriesQueryHandler
+namespace services.beertierlist.application.Queries.TierlistEntries;
+
+public interface ITierlistEntriesQueryHandler
 {
+    Task<IReadOnlyList<TierlistEntry>> Handle(TierlistEntriesQuery query, CancellationToken cancellationToken);
 }

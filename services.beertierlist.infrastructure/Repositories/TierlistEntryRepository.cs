@@ -7,10 +7,10 @@ namespace services.beertierlist.infrastructure.Repositories;
 
 public class TierlistEntryRepository(IBeertierlistDbContext dbContext) : ITierlistEntryRepository
 {
-    public async Task AddTierlistEntry(string userId, TierlistEntry tierlistEntry, CancellationToken cancellationToken)
+    public Task AddTierlistEntry(string userId, TierlistEntry tierlistEntry, CancellationToken cancellationToken)
     {
         dbContext.TierlistEntries.Add(tierlistEntry);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        return dbContext.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<IReadOnlyList<TierlistEntry>> GetEntries(string userId, CancellationToken cancellationToken)
@@ -19,6 +19,12 @@ public class TierlistEntryRepository(IBeertierlistDbContext dbContext) : ITierli
             .Where(entry => entry.UserId == userId)
             .AsNoTracking()
             .ToListAsync(cancellationToken);
+    }
+
+    public async Task<TierlistEntry?> GetEntry(Guid id, string userId, CancellationToken cancellationToken)
+    {
+        return await dbContext.TierlistEntries
+            .FirstOrDefaultAsync(entry => entry.UserId == userId && entry.Id == id, cancellationToken: cancellationToken);
     }
 
     public async Task RemoveTierlistEntry(string userId, Guid tierlistEntryId, CancellationToken cancellationToken)

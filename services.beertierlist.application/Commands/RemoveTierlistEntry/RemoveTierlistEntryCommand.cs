@@ -1,5 +1,3 @@
 ﻿namespace services.beertierlist.application.Commands.RemoveTierlistEntry;
 
-internal class RemoveTierlistEntry
-{
-}
+public record RemoveTierlistEntryCommand(Guid Id, string UserId);

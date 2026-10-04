@@ -1,3 +1,6 @@
 ﻿namespace services.beertierlist.application.Commands.AddTierlistEntry;
 
-public interface IAddTierlistEntryCommandHandler;
+public interface IAddTierlistEntryCommandHandler
+{
+    Task Handle(AddTierlistEntryCommand command, CancellationToken cancellationToken);
+}

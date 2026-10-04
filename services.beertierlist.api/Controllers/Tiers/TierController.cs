@@ -21,7 +21,7 @@ public class TierController : ControllerBase
         return Ok();
     }
 
-    [HttpDelete("remove/{guid:id}")]
+    [HttpDelete("remove/{id:guid}")]
     public async Task<IActionResult> RemoveTier([FromRoute] Guid Id, [FromServices] IRemoveTierCommandHandler commandHandler, CancellationToken cancellationToken)
     {
         var command = new RemoveTierCommand(Id, "userId");

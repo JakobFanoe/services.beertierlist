@@ -1,5 +1,3 @@
 ﻿namespace services.beertierlist.application.Queries.TierlistEntries;
 
-internal class TierlistEntriesQuery
-{
-}
+public record TierlistEntriesQuery(string UserId);

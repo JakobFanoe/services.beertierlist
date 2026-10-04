@@ -11,9 +11,10 @@ public class BeerTierlistDbContext : DbContext, IBeertierlistDbContext
     public DbSet<TierlistEntry> TierlistEntries { get; set; }
     public DbSet<WheelOption> WheelOptions { get; set; }
 
-    public BeerTierlistDbContext()
+    public BeerTierlistDbContext(
+      DbContextOptions<BeerTierlistDbContext> options)
+      : base(options)
     {
-
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
