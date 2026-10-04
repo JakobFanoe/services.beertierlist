@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using services.beertierlist.api.Extensions;
 using services.beertierlist.application.Commands.AddTierlistEntry;
 using services.beertierlist.application.Commands.RemoveTierlistEntry;
 using services.beertierlist.application.Queries.TierlistEntries;
@@ -7,6 +9,7 @@ namespace services.beertierlist.api.Controllers.Tierlist;
 
 [ApiController]
 [Route("[controller]")]
+[Authorize]
 public class TierlistController : ControllerBase
 {
     [HttpPost("AddEntry")]
@@ -27,7 +30,10 @@ public class TierlistController : ControllerBase
 
         await using var stream = image.OpenReadStream();
 
-        var command = new AddTierlistEntryCommand(stream, image.ContentType, image.FileName, "userId");
+        var userId = HttpContext.GetUserId();
+        if (userId is null) return Unauthorized();
+
+        var command = new AddTierlistEntryCommand(stream, image.ContentType, image.FileName, userId);
 
         await commandHandler.Handle(command, HttpContext.RequestAborted);
 
@@ -37,7 +43,10 @@ public class TierlistController : ControllerBase
     [HttpDelete("RemoveEntry/{id:guid}")]
     public async Task<IActionResult> RemoveTierlistEntry([FromRoute] Guid id, [FromServices] IRemoveTierlistEntryCommandHandler commandHandler)
     {
-        var command = new RemoveTierlistEntryCommand(id, "userId");
+        var userId = HttpContext.GetUserId();
+        if (userId is null) return Unauthorized();
+
+        var command = new RemoveTierlistEntryCommand(id, userId);
         await commandHandler.Handle(command, HttpContext.RequestAborted);
 
         return Ok();
@@ -46,7 +55,10 @@ public class TierlistController : ControllerBase
     [HttpGet("GetEntries")]
     public async Task<IActionResult> GetTierlistEntries([FromServices] ITierlistEntriesQueryHandler queryHandler)
     {
-        var query = new TierlistEntriesQuery("userId");
+        var userId = HttpContext.GetUserId();
+        if (userId is null) return Unauthorized();
+
+        var query = new TierlistEntriesQuery(userId);
         var entries = await queryHandler.Handle(query, HttpContext.RequestAborted);
         return Ok(entries);
     }

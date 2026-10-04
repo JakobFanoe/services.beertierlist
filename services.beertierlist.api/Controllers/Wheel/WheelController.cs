@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using services.beertierlist.api.Extensions;
 using services.beertierlist.api.Controllers.Wheel.Requests;
 using services.beertierlist.application.Commands.AddWheelOptions;
 using services.beertierlist.application.Commands.RemoveWheelOption;
@@ -9,12 +11,16 @@ namespace services.beertierlist.api.Controllers.Wheel;
 
 [ApiController]
 [Route("[controller]")]
+[Authorize]
 public class WheelController : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<WheelOption>>> GetWheelOptions([FromServices] IWheelOptionsQueryHandler wheelOptionsQueryHandler)
     {
-        var options = await wheelOptionsQueryHandler.Handle(new WheelOptionsQuery("userId"), HttpContext.RequestAborted);
+        var userId = HttpContext.GetUserId();
+        if (userId is null) return Unauthorized();
+
+        var options = await wheelOptionsQueryHandler.Handle(new WheelOptionsQuery(userId), HttpContext.RequestAborted);
 
         return Ok(options);
     }
@@ -22,7 +28,10 @@ public class WheelController : ControllerBase
     [HttpPost("add")]
     public async Task<IActionResult> AddWheelOption([FromBody] AddWheelOptionsRequest request, [FromServices] IAddWheelOptionsCommandHandler commandHandler)
     {
-        var command = new AddWheelOptionsCommand("userId", request.WheelOptions);
+        var userId = HttpContext.GetUserId();
+        if (userId is null) return Unauthorized();
+
+        var command = new AddWheelOptionsCommand(userId, request.WheelOptions);
 
         await commandHandler.Handle(command, HttpContext.RequestAborted);
 
@@ -32,7 +41,10 @@ public class WheelController : ControllerBase
     [HttpDelete("remove/{id:guid}")]
     public async Task<IActionResult> RemoveWheelOption([FromRoute] Guid Id, [FromServices] IRemoveWheelOptionCommandHandler commandHandler)
     {
-        var command = new RemoveWheelOptionCommand(Id, "userId");
+        var userId = HttpContext.GetUserId();
+        if (userId is null) return Unauthorized();
+
+        var command = new RemoveWheelOptionCommand(Id, userId);
 
         await commandHandler.Handle(command, HttpContext.RequestAborted);
 

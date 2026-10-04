@@ -1,5 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Azure;
+using Microsoft.IdentityModel.Tokens;
+using services.beertierlist.api.Authentication;
+using services.beertierlist.application.Commands.LoginAccount;
+using services.beertierlist.application.Commands.RegisterAccount;
 using services.beertierlist.application.Commands.AddTier;
 using services.beertierlist.application.Commands.AddTierlistEntry;
 using services.beertierlist.application.Commands.AddWheelOptions;
@@ -21,6 +27,11 @@ public static class HostingExtensions
 {
     public static WebApplicationBuilder AddServices(this WebApplicationBuilder builder)
     {
+        // Account
+        builder.Services.AddScoped<IRegisterAccountCommandHandler, RegisterAccountCommandHandler>();
+        builder.Services.AddScoped<ILoginAccountCommandHandler, LoginAccountCommandHandler>();
+        builder.Services.AddScoped<IAccessTokenGenerator, JwtAccessTokenGenerator>();
+
         // Tier
         builder.Services.AddScoped<IAddTierCommandHandler, AddTierCommandHandler>();
         builder.Services.AddScoped<IRemoveTierCommandHandler, RemoveTierCommandHandler>();
@@ -50,6 +61,46 @@ public static class HostingExtensions
             ));
         builder.Services.AddScoped<IBeertierlistDbContext>(serviceProvider =>
             serviceProvider.GetRequiredService<BeerTierlistDbContext>());
+
+        // Identity
+        builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
+        {
+            options.Password.RequiredLength = 12;
+            options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+            options.Lockout.MaxFailedAccessAttempts = 5;
+        })
+        .AddEntityFrameworkStores<BeerTierlistDbContext>()
+        .AddDefaultTokenProviders();
+
+        // JWT Authentication
+        var jwtSettings = JwtSettings.Load(builder.Configuration);
+        builder.Services.AddSingleton(jwtSettings);
+
+        builder.Services.AddAuthentication(options =>
+        {
+            options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+        .AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                RequireSignedTokens = true,
+                RequireExpirationTime = true,
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = jwtSettings.SigningKey,
+                ValidateIssuer = true,
+                ValidIssuer = jwtSettings.Issuer,
+                ValidateAudience = true,
+                ValidAudience = jwtSettings.Audience,
+                ValidAlgorithms = [SecurityAlgorithms.HmacSha256],
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.Zero
+            };
+        });
+
+        builder.Services.AddAuthorization();
 
         builder.Services.AddAzureClients(azure =>
         {

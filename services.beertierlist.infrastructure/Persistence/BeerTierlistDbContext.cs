@@ -1,11 +1,13 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using services.beertierlist.domain.Interfaces;
 using services.beertierlist.domain.Tierlist;
 using services.beertierlist.domain.Wheel;
 
 namespace services.beertierlist.infrastructure.Persistence;
 
-public class BeerTierlistDbContext : DbContext, IBeertierlistDbContext
+public class BeerTierlistDbContext : IdentityDbContext<IdentityUser>, IBeertierlistDbContext
 {
     public DbSet<Tier> Tiers { get; set; }
     public DbSet<TierlistEntry> TierlistEntries { get; set; }
