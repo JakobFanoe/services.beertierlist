@@ -17,6 +17,9 @@ public class TierlistEntryRepository(IBeertierlistDbContext dbContext) : ITierli
     {
         return await dbContext.TierlistEntries
             .Where(entry => entry.UserId == userId)
+            .OrderBy(entry => entry.Position ?? int.MaxValue)
+            .ThenBy(entry => entry.Name)
+            .ThenBy(entry => entry.Id)
             .AsNoTracking()
             .ToListAsync(cancellationToken);
     }
@@ -36,5 +39,26 @@ public class TierlistEntryRepository(IBeertierlistDbContext dbContext) : ITierli
             dbContext.TierlistEntries.Remove(entry);
             await dbContext.SaveChangesAsync(cancellationToken);
         }
+    }
+
+    public async Task<bool> UpdateEntries(string userId, IReadOnlyList<TierlistEntry> updates, CancellationToken cancellationToken)
+    {
+        var ids = updates.Select(update => update.Id).ToHashSet();
+        var entries = await dbContext.TierlistEntries
+            .Where(entry => entry.UserId == userId && ids.Contains(entry.Id))
+            .ToListAsync(cancellationToken);
+
+        if (entries.Count != ids.Count)
+            return false;
+
+        var updatesById = updates.ToDictionary(update => update.Id);
+        foreach (var entry in entries)
+        {
+            var update = updatesById[entry.Id];
+            dbContext.Entry(entry).CurrentValues.SetValues(entry with { TierId = update.TierId, Position = update.Position });
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return true;
     }
 }

@@ -1,9 +1,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using services.beertierlist.api.Extensions;
+using services.beertierlist.api.Controllers.Tierlist.Requests;
 using services.beertierlist.application.Commands.AddTierlistEntry;
 using services.beertierlist.application.Commands.RemoveTierlistEntry;
+using services.beertierlist.application.Commands.UpdateTierlistEntries;
 using services.beertierlist.application.Queries.TierlistEntries;
+using services.beertierlist.domain.Tierlist;
 
 namespace services.beertierlist.api.Controllers.Tierlist;
 
@@ -53,7 +56,7 @@ public class TierlistController : ControllerBase
     }
 
     [HttpGet("GetEntries")]
-    public async Task<IActionResult> GetTierlistEntries([FromServices] ITierlistEntriesQueryHandler queryHandler)
+    public async Task<ActionResult<IReadOnlyList<TierlistEntry>>> GetTierlistEntries([FromServices] ITierlistEntriesQueryHandler queryHandler)
     {
         var userId = HttpContext.GetUserId();
         if (userId is null) return Unauthorized();
@@ -61,5 +64,21 @@ public class TierlistController : ControllerBase
         var query = new TierlistEntriesQuery(userId);
         var entries = await queryHandler.Handle(query, HttpContext.RequestAborted);
         return Ok(entries);
+    }
+
+    [HttpPut("UpdateEntries")]
+    public async Task<IActionResult> UpdateTierlistEntries(
+        [FromBody] UpdateTierlistEntriesRequest request,
+        [FromServices] IUpdateTierlistEntriesCommandHandler commandHandler)
+    {
+        if (request.Updates.Select(update => update.Id).Distinct().Count() != request.Updates.Count)
+            return BadRequest("An entry may only be updated once per request.");
+
+        var userId = HttpContext.GetUserId();
+        if (userId is null) return Unauthorized();
+
+        var command = new UpdateTierlistEntriesCommand(userId, request.Updates);
+        var updated = await commandHandler.Handle(command, HttpContext.RequestAborted);
+        return updated ? NoContent() : NotFound();
     }
 }

@@ -8,4 +8,5 @@ public interface ITierlistEntryRepository
     Task RemoveTierlistEntry(string userId, Guid tierlistEntryId, CancellationToken cancellationToken);
     Task<IReadOnlyList<TierlistEntry>> GetEntries(string userId, CancellationToken cancellationToken);
     Task<TierlistEntry?> GetEntry(Guid id, string userId, CancellationToken cancellationToken);
+    Task<bool> UpdateEntries(string userId, IReadOnlyList<TierlistEntry> updates, CancellationToken cancellationToken);
 }

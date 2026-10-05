@@ -11,6 +11,7 @@ using services.beertierlist.application.Commands.AddTierlistEntry;
 using services.beertierlist.application.Commands.AddWheelOptions;
 using services.beertierlist.application.Commands.RemoveTier;
 using services.beertierlist.application.Commands.RemoveTierlistEntry;
+using services.beertierlist.application.Commands.UpdateTierlistEntries;
 using services.beertierlist.application.Commands.RemoveWheelOption;
 using services.beertierlist.application.Queries.TierlistEntries;
 using services.beertierlist.application.Queries.Tiers;
@@ -31,6 +32,8 @@ public static class HostingExtensions
         builder.Services.AddScoped<IRegisterAccountCommandHandler, RegisterAccountCommandHandler>();
         builder.Services.AddScoped<ILoginAccountCommandHandler, LoginAccountCommandHandler>();
         builder.Services.AddScoped<IAccessTokenGenerator, JwtAccessTokenGenerator>();
+        builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
+        builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
         // Tier
         builder.Services.AddScoped<IAddTierCommandHandler, AddTierCommandHandler>();
@@ -42,6 +45,7 @@ public static class HostingExtensions
         // Tierlist entries
         builder.Services.AddScoped<IAddTierlistEntryCommandHandler, AddTierlistEntryCommandHandler>();
         builder.Services.AddScoped<IRemoveTierlistEntryCommandHandler, RemoveTierlistEntryCommandHandler>();
+        builder.Services.AddScoped<IUpdateTierlistEntriesCommandHandler, UpdateTierlistEntriesCommandHandler>();
         builder.Services.AddScoped<ITierlistEntriesQueryHandler, TierlistEntriesQueryHandler>();
 
         builder.Services.AddScoped<ITierlistEntryRepository, TierlistEntryRepository>();
@@ -55,10 +59,16 @@ public static class HostingExtensions
 
 
         // Infrastructure
+        var databaseConnectionString = builder.Configuration.GetConnectionString("Database");
+        if (string.IsNullOrWhiteSpace(databaseConnectionString))
+            throw new InvalidOperationException("Configure ConnectionStrings:Database.");
+
+        var blobStorageConnectionString = builder.Configuration.GetConnectionString("Blobstorage");
+        if (string.IsNullOrWhiteSpace(blobStorageConnectionString))
+            throw new InvalidOperationException("Configure ConnectionStrings:Blobstorage.");
+
         builder.Services.AddDbContext<BeerTierlistDbContext>(options =>
-            options.UseSqlServer(
-                builder.Configuration.GetConnectionString("Database")
-            ));
+            options.UseSqlServer(databaseConnectionString));
         builder.Services.AddScoped<IBeertierlistDbContext>(serviceProvider =>
             serviceProvider.GetRequiredService<BeerTierlistDbContext>());
 
@@ -104,8 +114,7 @@ public static class HostingExtensions
 
         builder.Services.AddAzureClients(azure =>
         {
-            azure.AddBlobServiceClient(
-                builder.Configuration.GetConnectionString("Blobstorage"));
+            azure.AddBlobServiceClient(blobStorageConnectionString);
         });
 
         builder.Services.AddScoped<IImageService, ImageService>();

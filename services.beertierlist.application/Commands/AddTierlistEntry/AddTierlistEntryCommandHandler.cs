@@ -10,6 +10,14 @@ public class AddTierlistEntryCommandHandler(IImageService imageService, ITierlis
     {
         var uploadedImage = await imageService.UploadImage(command.Content, command.FileName, command.ContentType, cancellationToken);
 
-        await tierlistEntryRepository.AddTierlistEntry(command.UserId, new TierlistEntry(Guid.CreateVersion7(), command.UserId, TierId: null, uploadedImage.Uri, uploadedImage.BlobName), cancellationToken);
+        await tierlistEntryRepository.AddTierlistEntry(
+            command.UserId,
+            new TierlistEntry(
+                Guid.CreateVersion7(),
+                command.UserId,
+                TierId: null,
+                uploadedImage.Uri,
+                uploadedImage.BlobName),
+            cancellationToken);
     }
 }

@@ -12,5 +12,6 @@ internal class TierlistEntryConfig : IEntityTypeConfiguration<TierlistEntry>
 
         builder.Property(x => x.UserId)
             .HasMaxLength(50);
+
     }
 }
