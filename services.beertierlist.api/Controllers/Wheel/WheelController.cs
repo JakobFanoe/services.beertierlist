@@ -39,12 +39,12 @@ public class WheelController : ControllerBase
     }
 
     [HttpDelete("remove/{id:guid}")]
-    public async Task<IActionResult> RemoveWheelOption([FromRoute] Guid Id, [FromServices] IRemoveWheelOptionCommandHandler commandHandler)
+    public async Task<IActionResult> RemoveWheelOption([FromRoute] Guid id, [FromServices] IRemoveWheelOptionCommandHandler commandHandler)
     {
         var userId = HttpContext.GetUserId();
         if (userId is null) return Unauthorized();
 
-        var command = new RemoveWheelOptionCommand(Id, userId);
+        var command = new RemoveWheelOptionCommand(id, userId);
 
         await commandHandler.Handle(command, HttpContext.RequestAborted);
 
